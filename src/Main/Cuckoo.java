@@ -5,27 +5,25 @@ import java.util.*;
 /**
  * Created by Алина on 29.11.2016.
  */
-public class Cuckoo<K,V> implements Map {
-    final Random random = new Random();
+public class Cuckoo<K,V> //implements Map
+        {
+            Random random = new Random(1);
     int size =  0;
     int h1 = 0;
     int h2 = 0;
     Bucket<K,V>[] A;
-    Bucket<K,V>[] B;
 
     public Cuckoo() {
         A = new Bucket[10];
-        B = new Bucket[0];
-        while (h1 != h2) {
+        while (h1 == h2) {
             h1 = ((random.nextInt()) * 100 + 99);
             h2 = ((random.nextInt()) * 100 + 99);
         }
     }
-    public int hashF1(K key) {
-        return (h1 * key.hashCode()) % A.length;
+    public int hashF1(K key) {return (h1 * key.hashCode() ) % (A.length-1);
     }
     public  int hashF2(K key){
-        return  (h2 * key.hashCode()) % A.length;
+        return  (h2 * key.hashCode()) % (A.length-2);
     }
 
 
@@ -45,13 +43,13 @@ public class Cuckoo<K,V> implements Map {
     }
 
 
-    @Override
+   // @Override
     public int size() {
         return size;
     }
 
 
-    @Override
+   // @Override
     public boolean isEmpty() {
         if (size == 0){
             return true;
@@ -59,23 +57,34 @@ public class Cuckoo<K,V> implements Map {
         else return false;
     }
 
-    @Override
+   // @Override
     public boolean containsKey(Object key) {
         return (keySet().contains(key));
     }
 
 
-    @Override
+   // @Override
     public boolean containsValue(Object value) {
         return (values().contains(value));
     }
 
+    //@Override
     public V get(K key) {
         if (A[hashF1(key)] != null) {
             if (key.equals(A[hashF1(key)].getKey())) {
                 return A[hashF1(key)].getValue();
-            } else return null;
-        }else  return  null;
+            }
+        }
+        else
+            if (A[hashF2(key)] != null) {
+            if (key.equals(A[hashF1(key)].getKey())) {
+                return A[hashF2(key)].getValue();
+            }
+        }
+        if (A[hashF1(key)] == null && A[hashF2(key)] == null)
+            return null;
+
+        return  null;
     }
 
     /**
@@ -104,44 +113,99 @@ public class Cuckoo<K,V> implements Map {
      */
 
     public V put( K key, V value) {
-        int p1 = hashF1(key);
-        int p2 = hashF2(key);
-        V myV = this.get(key);
-        Bucket temp = new Bucket(key,value);
-        if (occupancy(size) < 0.8) {
+        int a = 2;
+        int hash1key = hashF1(key);
+        int hash2key = hashF2(key);
+        V myV = this.get(key);//элемент с тем же хешкодом
+        Bucket temp1 = new Bucket(key, value);
+        Bucket temp2;
+        K k1 = null;
+        K k2 = null;
+        V v1 = null;
+        V v2 = null;
+
+        if (occupancy(size) > 0.6) {
             grow(A);
         }
-        if(myV != value){
-            if (A[p1] == null){
-                A[p1] = temp;
-                size ++;
+        if(myV != null) {
+            k1 = A[hash1key].getKey();// ключ по 1 коду
+            k2 = A[hash2key].getKey();// ключ по 2 коду
+            v1 = A[hash1key].getValue();// значение по 1 коду
+            v2 = A[hash2key].getValue();// значение по 2 коду
+        }
+            if (myV == value || k1 == key || k2 == key) {
+                return null;
             } else {
-                if (A[p2] == null) {
-                    A[p2] = temp;
-                    size ++;
-                }
-                }
-                if ((A[p1] != null) && (A[p2] != null)){
-                    V vp1 = A[p1].getValue();
-                    K kp1 = A[p1].getKey();
-                    while (vp1 == myV || vp1 == null){
-                        A[p1] = temp;
-                        temp = new Bucket(kp1,vp1);
-                        p1 = hashF1(kp1);
-                        p2 = hashF2(kp1);
-                        vp1 = A[hashF1(kp1)].getValue();
-                        kp1 = A[hashF1(kp1)].getKey();
+                if (A[hash1key] == null) {
+                    A[hash1key] = temp1;
+                    size++;
+                    return value;
+                } else {
+                    if (A[hash2key] == null) {
+                        A[hash2key] = temp1;
+                        size++;
+                    } else {
+                        while (v1 != myV && v1 != null && v2 != myV && v2 != null) {
+                            A[hash1key] = temp1;
+                            temp1 = new Bucket<>(k1, v1);
+                            temp2 = new Bucket<>(k2, v1);
+                            hash1key = hashF1(k1);
+                            hash2key = hashF2(k1);
+                            if (a % 2 == 0) {
+                                v2 = A[hash2key].getValue();
+                                k2 = A[hash2key].getKey();
+
+                                if (A[hash1key] == null) {
+                                    A[hash1key] = temp1;
+                                    size++;
+                                    a +=1;
+                                    return value;
+                                } else {
+                                    if (A[hash2key] == null) {
+                                        A[hash2key] = temp1;
+                                        size++;
+                                        a +=1;
+                                        return  value;
+                                    }
+                                }
+                            } else {
+                                v1 = A[hash1key].getValue();
+                                k1 = A[hash1key].getKey();
+                                if (A[hash1key] == null) {
+                                    A[hash1key] = temp2;
+                                    size++;
+                                    a +=1;
+                                    return value;
+
+                                } else {
+                                    if (A[hash2key] == null) {
+                                        A[hash2key] = temp2;
+                                        size++;
+                                        a +=1;
+                                        return value;
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (v1 == myV || v2 == myV) {
+                        Cuckoo B = new Cuckoo<K, V>();
+                        for (int i = 0; i < A.length; i++) {
+                            if (A[i] != null) {
+                                K kA = A[i].getKey();
+                                V vA = A[i].getValue();
+                                B.put(kA, vA);
+                            }
+                        }
                     }
                 }
+            }
+
+            return null;
         }
 
 
-
-
-
-        return null;
-
-    }
 
     public V remove(K key) {
         Bucket<K, V> b1 = A[hashF1(key)];
@@ -166,7 +230,7 @@ public class Cuckoo<K,V> implements Map {
 
         }
 
-    @Override
+    //@Override
     public void clear() {
        A = new Bucket [10];
         while (h1 != h2){
@@ -176,7 +240,7 @@ public class Cuckoo<K,V> implements Map {
         }
     }
 
-    @Override
+    //@Override
     public Set<K> keySet() {
         Set<K> kList = new TreeSet<>();
         for (int i = 0; i < A.length; i++) {
@@ -187,7 +251,7 @@ public class Cuckoo<K,V> implements Map {
         return kList;
     }
 
-    @Override
+   // @Override
     public Collection values() {
         Set<V> kList = new TreeSet<>();
         for (int i = 0; i < A.length; i++) {
@@ -198,7 +262,7 @@ public class Cuckoo<K,V> implements Map {
         return kList;
     }
 
-    @Override
+   // @Override
     public Set<Bucket> entrySet() {
         Set<Bucket> kList = new TreeSet<>();
         for (int i = 0; i < A.length; i++) {
