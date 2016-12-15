@@ -15,18 +15,14 @@ public class Cuckoo<K,V> //implements Map
             Bucket<K,V>[] A;
 
             public Cuckoo() {
-                n = 100000000;
+                n = 10;
                 A = new Bucket[n];
                 while (h1 == h2) {
             h1 = ((random.nextInt()) * 100 + 99);
             h2 = ((random.nextInt()) * 100 + 99);
         }
     }
-            public Cuckoo(Bucket[]A,int h1,int h2) {
-                this.A = A;
-                this.h1 = h1;
-                this.h2 = h2;
-            }
+
 
     public int hashF1(K key) {return Math.abs(h1 * key.hashCode() ) % (A.length-2);
     }
@@ -40,7 +36,7 @@ public class Cuckoo<K,V> //implements Map
         return s;
     }
 
-    public Bucket<K, V>[] grow(Bucket<K, V>[] A) {
+    public void grow(Bucket<K, V>[] A) {
         Bucket<K,V>[] Aold = A;
         n = Aold.length *2 + 1;
         A = (Bucket<K,V>[]) new Bucket[n];
@@ -50,7 +46,6 @@ public class Cuckoo<K,V> //implements Map
                /* A.put(Aold[i].getKey(), Aold[i].getValue());*/
             }
         }
-        return A;
     }
 
 
