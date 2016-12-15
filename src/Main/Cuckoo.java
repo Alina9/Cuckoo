@@ -15,7 +15,7 @@ public class Cuckoo<K,V> //implements Map
             Bucket<K,V>[] A;
 
             public Cuckoo() {
-                n = 10;
+                n = 1000000;
                 A = new Bucket[n];
                 while (h1 == h2) {
             h1 = ((random.nextInt()) * 100 + 99);
@@ -31,22 +31,22 @@ public class Cuckoo<K,V> //implements Map
     }
 
 
-    public double occupancy(double size){
+    /*public double occupancy(double size){
         double s = size / A.length*2;
         return s;
-    }
+    }*/
 
-    public void grow(Bucket<K, V>[] A) {
+   /* public void grow(Bucket<K, V>[] A) {
         Bucket<K,V>[] Aold = A;
         n = Aold.length *2 + 1;
         A = (Bucket<K,V>[]) new Bucket[n];
         for (int i = 0; i < Aold.length; i++) {
             if (Aold[i] != null) {
                 A[i] = Aold[i];
-               /* A.put(Aold[i].getKey(), Aold[i].getValue());*/
+               /* A.put(Aold[i].getKey(), Aold[i].getValue());
             }
         }
-    }
+    }*/
 
 
    // @Override
@@ -100,10 +100,10 @@ public  V put (K key, V value) {
     Bucket t = new Bucket(key, value);
     int a = 0;
     boolean b = true;
-    if (occupancy(size) > 0.6) {
+  /*  if (occupancy(size) > 0.6) {
         double f = occupancy(size);
         grow(A);
-    }
+    }*/
     while  (b) {
         if (A[hash1] != null && A[hash2] != null) {
             K k1 = A[hash1].getKey();
